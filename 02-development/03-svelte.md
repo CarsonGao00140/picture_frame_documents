@@ -4,15 +4,15 @@
   ...
   <body>
 +     <div id="app"></div>
-+     <script type="module" src="/src/main.ts"></script>
++     <script type="module" renderer="/renderer/main.ts"></script>
   <body>
   ...
 
 ```
 
-### src/main.ts
+### renderer/main.ts
 
-```ts
+```typescript
 import { mount } from 'svelte'
 import './app.css'
 import App from './App.svelte'
@@ -25,7 +25,7 @@ export default app
 
 ```
 
-### src/app.css
+### renderer/app.css
 
 ```css
 :root {
@@ -47,7 +47,14 @@ html {
 
 ```
 
-### src/App.svelte
+### global.d.ts
+
+```typescript
+declare module 'svelte-tiny-router';
+
+```
+
+### renderer/App.svelte
 
 ```html
 <script lang="ts">
@@ -65,14 +72,12 @@ html {
 
 ```
 
-### src/components/Counter.svelte
+### renderer/components/Counter.svelte
 
 ```html
 <script lang="ts">
     let count: number = $state(0)
-    const increment = () => {
-        count += 1
-    }
+    const increment = () => count += 1;
 </script>
 
 <button onclick={increment}>
@@ -81,28 +86,23 @@ html {
 
 ```
 
-### src/pages/Settings.svelte
+### renderer/pages/Settings.svelte
 
 ```html
 <script lang="ts">
-    import { navigate } from 'svelte-tiny-router';
-    import Counter from '../components/Counter.svelte'
+    import Counter from '../components/Counter.svelte';
 </script>
 
 <h1>Settings</h1>
 <Counter />
-<button onclick={() => navigate('/frame')}>Frame</button>
+<a href="/frame">Frame</a>
 
 ```
 
-### src/pages/Frame.svelte
+### renderer/pages/Frame.svelte
 
 ```html
-<script lang="ts">
-    import { navigate } from 'svelte-tiny-router';
-</script>
-
 <h1>Frame</h1>
-<button onclick={() => navigate('/')}>Settings</button>
+<a href="/">Settings</a>
 
 ```

@@ -22,7 +22,7 @@ Reboot at least once after installing Node.js to enable debugging.
 ## Dependencies
 
 ```bash
-pnpm i -D electron
+pnpm i -D electron tsx
 
 pnpm approve-builds
 ```
@@ -37,15 +37,15 @@ node_modules
 
 ```
 
-### electron.js
+### main/index.ts
 
-```javascript
+```typescript
 import { app, BrowserWindow } from 'electron';
 
 app.whenReady().then(() => {
     const window = new BrowserWindow({});
-    
-    window.webContents.openDevTools();
+
+    window.loadURL('chrome://gpu');
 })
 
 ```
@@ -53,37 +53,29 @@ app.whenReady().then(() => {
 ### package.json
 
 ```diff
-  {
 +     "type": "module",
-+     "main": "electron.js",
++     "scripts": {
++         "dev": "electron -r tsx ./main/index.ts ${SSH_CONNECTION:+--remote-debugging-port=9222 --remote-allow-origins=devtools://devtools}"
++     }
       ...
-  }
 
 ```
 
 ## Start
 
-```bash
-pnpm electron .
-```
+``F5``
 
 ## Troubleshoot GPU issues on Linux
 
-### Open the GPU Internals page in Devtools
-
-```bash
-location.href = 'chrome://gpu';
-```
-
 Inspect the `GL_RENDERER field`. The presence of `SwiftShader` indicates that **GPU acceleration is not enabled**.
 
-### electron.js
+### main/index.ts
 
 ```diff
   ...
-+ import os from 'os';
++ import { cpus } from 'os';
 
-+ if (os.cpus()[0].model === 'Cortex-A55') {
++ if (cpus()[0].model === 'Cortex-A55') {
 +    app.commandLine.appendSwitch('use-gl', 'angle');
 +    app.commandLine.appendSwitch('use-angle', 'gles-egl');
 + }

@@ -36,12 +36,12 @@ pnpm tsc --init
 ### package.json
 
 ```diff
-  {
-+     "scripts": {
-+         "concurrently --kill-others \"vite\" \"wait-on tcp:5173 && electron . ${SSH_CONNECTION:+--remote-debugging-port=9222 --remote-allow-origins=devtools://devtools}\""
-+     }
       ...
-  }
+      "scripts": {
+-         "dev": "electron -r tsx ./main/index.ts ${SSH_CONNECTION:+--remote-debugging-port=9222 --remote-allow-origins=devtools://devtools}"
++         "dev": "concurrently --kill-others \"vite\" \"wait-on tcp:5173 && electron -r tsx ./main/index.ts ${SSH_CONNECTION:+--remote-debugging-port=9222 --remote-allow-origins=devtools://devtools}\""
+      }
+      ...
 
 ```
 
@@ -80,17 +80,9 @@ pnpm tsc --init
 
 ```
 
-### .gitignore
-
-```diff
-  ...
-+ dist
-
-```
-
 ### svelte.config.ts
 
-```ts
+```typescript
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 export default {
@@ -104,7 +96,7 @@ export default {
 
 ### vite.config.ts
 
-```ts
+```typescript
 import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 
@@ -116,16 +108,20 @@ export default defineConfig({
 
 ```
 
-### electron.js
+### main/index.ts
 
 ```diff
-      ...
+  import { app, BrowserWindow } from 'electron';
+- import { cpus } from 'os';
++ import { cpus, platform } from 'os';
+  ...
+  app.whenReady().then(() => {
 -     const window = new BrowserWindow({});
 +     const window = new BrowserWindow({
-+         kiosk: os.platform() === 'linux',
++         kiosk: platform() === 'linux',
 +     });
 
--     window.webContents.openDevTools();
+-     window.loadURL('chrome://gpu');
 +     if (app.isPackaged) {
 +         window.loadFile('dist/index.html');
 +     } else {
@@ -133,4 +129,5 @@ export default defineConfig({
 +         if (process.env.SSH_CONNECTION) return;
 +         window.webContents.openDevTools();
 +     }
+  })
 ```
