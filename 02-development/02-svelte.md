@@ -1,16 +1,71 @@
-### index.html (From ! template)
+## VS Code Settings
 
-```diff
-  ...
-  <body>
-+     <div id="app"></div>
-+     <script type="module" renderer="/renderer/main.ts"></script>
-  <body>
-  ...
+### .vscode/extensions.json
+
+```jsonc
+{
+    "recommendations": [
+        "svelte.svelte-vscode",
+        "ardenivanov.svelte-intellisense",
+        "Chanzhaoyu.svelte-5-snippets"
+    ]
+}
 
 ```
 
-### renderer/main.ts
+## Dependencies
+```bash
+pnpm i -D svelte @sveltejs/vite-plugin-svelte svelte-tiny-router
+```
+
+## Configuration
+
+### vite.svelte.config.ts
+
+```typescript
+import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+
+export default defineConfig({
+    root: 'renderer',
+    build: {
+        outDir: '../dist',
+        target: 'esnext',
+        modulePreload: {
+            polyfill: false
+        },
+    },
+    plugins: [
+        svelte(),
+    ]
+})
+
+```
+
+### svelte.config.ts
+
+```typescript
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+
+export default {
+    preprocess: vitePreprocess(),
+    compilerOptions: {
+        runes: true
+    }
+}
+
+```
+
+### renderer/index.html (From ! template)
+
+```diff
+  <body>
++     <div id="app"></div>
++     <script type="module" renderer="/renderer/main.ts"></script>
+
+```
+
+### renderer/index.ts
 
 ```typescript
 import { mount } from 'svelte'
@@ -47,16 +102,9 @@ html {
 
 ```
 
-### global.d.ts
-
-```typescript
-declare module 'svelte-tiny-router';
-
-```
-
 ### renderer/App.svelte
 
-```html
+```svelte
 <script lang="ts">
     import { Router, Route } from 'svelte-tiny-router';
     import Settings from './pages/Settings.svelte'
@@ -72,7 +120,7 @@ declare module 'svelte-tiny-router';
 
 ```
 
-### renderer/components/Counter.svelte
+### svelte/components/Counter.svelte
 
 ```html
 <script lang="ts">
@@ -86,7 +134,7 @@ declare module 'svelte-tiny-router';
 
 ```
 
-### renderer/pages/Settings.svelte
+### svelte/pages/Settings.svelte
 
 ```html
 <script lang="ts">
@@ -99,10 +147,15 @@ declare module 'svelte-tiny-router';
 
 ```
 
-### renderer/pages/Frame.svelte
+### package.json
 
-```html
-<h1>Frame</h1>
-<a href="/">Settings</a>
+```diff
+          "electron:dev": "vite build -w -c vite.electron.config -m development",
++ 		  "svelte:dev": "vite -c vite.svelte.config"
+```
 
+## Start
+
+```bash
+pnpm electron:dev
 ```

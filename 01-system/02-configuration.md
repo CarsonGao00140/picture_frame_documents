@@ -23,19 +23,19 @@ Some extensions need to be reinstalled on the remote host.
 ## Download Node.js
 
 https://nodejs.org/en/download  
-Get Node.js® `v24.x.x (Current)` for `Linux` using `nvm` with `pnpm`
+Get Node.js® `vxx.x.x (Current)` for `Linux` using `nvm` with `pnpm`
 
 ## Set Scale Fator
 
 ```bash
 vim ~/.Xresources
-
 ```
 
 ### ~/.Xresources
 
 ```diff
-+     Xft.dpi: 192
+Xft.dpi: 192
+
 ```
 
 Takes effect after reboot.  

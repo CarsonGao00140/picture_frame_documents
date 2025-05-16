@@ -1,83 +1,171 @@
 ## VS Code Settings
 
-### .vscode/launch.json
+### .vscode/settings.json
 
 ```jsonc
 {
-    "configurations": [
-        {
-            "name": "dev script",
-            "type": "node",
-            "request": "launch",
-            "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["dev"]
-        }
-    ]
+    "typescript.tsdk": "node_modules/typescript/lib"
 }
 
 ```
 
-Reboot at least once after installing Node.js to enable debugging.
-
 ## Dependencies
 
 ```bash
-pnpm i -D electron tsx
+pnpm i -D typescript electron vite execa
 
 pnpm approve-builds
+
+pnpm tsc --init
 ```
 
 ## Configuration
+
+### tsconfig.json
+
+```diff
+      ...
+-     "target": "es2016",
++     // "target": "ESNext",
+      ...
+-     "module": "commonjs",
++     // "module": "ESNext",
+      ...
+-     // "moduleResolution": "node10",
++     "moduleResolution": "bundler",
+      ...
+-     // "noEmit": true,
++     "noEmit": true,
+      ...
+-     // "noUnusedLocals": true,
+-     // "noUnusedParameters": true,
+-     // "exactOptionalPropertyTypes": true,
+-     // "noImplicitReturns": true,
+-     // "noFallthroughCasesInSwitch": true,
+-     // "noUncheckedIndexedAccess": true,
+-     // "noImplicitOverride": true,
+-     // "noPropertyAccessFromIndexSignature": true,
++     "noUnusedLocals": true,
++     "noUnusedParameters": true,
++     "exactOptionalPropertyTypes": true,
++     "noImplicitReturns": true,
++     "noFallthroughCasesInSwitch": true,
++     "noUncheckedIndexedAccess": true,
++     "noImplicitOverride": true,
++     "noPropertyAccessFromIndexSignature": true,
+      ...
+```
 
 ### .gitignore
 
 ```glob
 .DS_Store
 node_modules
+dist
 
 ```
 
-### main/index.ts
+### main/main.ts
 
 ```typescript
+import { platform } from 'os';
 import { app, BrowserWindow } from 'electron';
 
 app.whenReady().then(() => {
-    const window = new BrowserWindow({});
+    const window = new BrowserWindow({
+        show: false,
+        kiosk: platform() === 'linux',
+    });
 
-    window.loadURL('chrome://gpu');
+    if (app.isPackaged) {
+        window.on('ready-to-show', window.show);
+        window.loadFile('dist/index.html');
+    } else {
+        window.on('ready-to-show', window.showInactive);
+        window.loadURL('chrome://gpu');
+        if (process.env['SSH_CONNECTION']) return;
+        window.webContents.openDevTools();
+    };
 })
+
+```
+
+### vite.electron.config.ts
+
+```typescript
+import { defineConfig } from 'vite';
+import { execaCommand } from 'execa';
+import { builtinModules } from 'module';
+
+let electronProcess: ReturnType<typeof execaCommand> | null;
+
+const electronDev = () => ({
+    name: 'vite-plugin-electron-preview',
+    buildStart() {
+        electronProcess?.kill('SIGTERM');
+    },
+    writeBundle() {
+        electronProcess =  execaCommand(
+            'electron .' + (process.env['SSH_CONNECTION']
+                ? ' --remote-debugging-port=9222 --remote-allow-origins=devtools://devtools'
+                : ''),
+            { stdio: 'inherit' }
+        );
+    }
+})
+
+export default defineConfig(({ mode }) => ({
+    build: {
+        lib: {
+            entry: 'main/main.ts',
+            formats: ['es'],
+        },
+        target: 'esnext',
+        rollupOptions: {
+            external: [
+                'electron', 
+                ...builtinModules.flatMap(module => [module, `node:${module}`])
+            ]
+        }
+    },
+    plugins: [
+        mode === 'development' && electronDev(),
+    ],
+}))
 
 ```
 
 ### package.json
 
 ```diff
-+     "type": "module",
-+     "scripts": {
-+         "dev": "electron -r tsx ./main/index.ts ${SSH_CONNECTION:+--remote-debugging-port=9222 --remote-allow-origins=devtools://devtools}"
-+     }
-      ...
-
++ 	"type": "module",
++ 	"main": "dist/main.js",
++ 	"scripts": {
++ 		"electron:dev": "vite build -w -c vite.electron.config -m development"
++ 	},
+  	...
 ```
 
 ## Start
 
-``F5``
+```bash
+pnpm electron:dev
+```
+
 
 ## Troubleshoot GPU issues on Linux
 
-Inspect the `GL_RENDERER field`. The presence of `SwiftShader` indicates that **GPU acceleration is not enabled**.
+Inspect the `GL_RENDERER` field. The presence of `SwiftShader` indicates that **GPU acceleration is not enabled**.
 
-### main/index.ts
+### electron/main.ts
 
 ```diff
-  ...
-+ import { cpus } from 'os';
+- import { platform } from 'os';
++ import { cpus, platform } from 'os';
 
-+ if (cpus()[0].model === 'Cortex-A55') {
-+    app.commandLine.appendSwitch('use-gl', 'angle');
-+    app.commandLine.appendSwitch('use-angle', 'gles-egl');
++ if (cpus()?.[0]?.model === 'Cortex-A55') {
++     app.commandLine.appendSwitch('use-gl', 'angle');
++     app.commandLine.appendSwitch('use-angle', 'gles-egl');
 + }
   ...
 
