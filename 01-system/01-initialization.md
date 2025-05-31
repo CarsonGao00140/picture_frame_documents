@@ -4,13 +4,38 @@ https://wiki.friendlyelec.com/wiki/index.php/NanoPi_R5C
 
 ## OS
 
-`debian-bullseye-minimal`
+`debian-bookworm-core`
 
-## Post Installing
+## Default Root Password
 
-* **Connect to Wi-Fi**
-* **Set resolution**: Preferences > Monitor Settings
+`pi`
 
-## Known issues
+## Passwordless SSH Login
 
-* **Unable to connect to Wi-Fi**: Preferences > Advanced Network Configuration, adjust the security level to `WPA & WPA2 Personal`.
+```bash
+ssh-keygen
+# if not generated yet
+
+ssh-copy-id pi@NanoPi-R5C
+
+# or, if hostname doesn't resolve:
+
+hostname -I
+# execute directly on the device
+
+ssh-copy-id pi@<IP_ADDRESS>
+```
+
+## Remote Connection in VS Code
+
+Install [Remote - SSH](vscode:extension/ms-vscode-remote.remote-ssh) extension, Remote Explore > Remotes > Add
+
+```bash
+ssh pi@NanoPi-R5C
+
+# or, if hostname doesn't resolve:
+
+ssh pi@<IP_ADDRESS>
+```
+
+Some extensions need to be reinstalled on the remote host.

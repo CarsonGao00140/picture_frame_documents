@@ -1,57 +1,32 @@
-## Default Root Password
-
-`pi`
-
-## Passwordless SSH Login
+## Update Software List
 
 ```bash
-ssh-keygen
-
-ssh-copy-id pi@NanoPi-R5C
+sudo apt update
 ```
 
-## Remote Connection in VS Code
+## Troubleshoot GPU Issues
+```bash
+dpkg -l | grep libmali
+# If the output includes g52-g*p0-*-gbm, replace it with the pure gbm driver.
 
-Install [Remote - SSH](vscode:extension/ms-vscode-remote.remote-ssh) extension, Remote Explore > Remotes > Add
+sudo apt purge <DRIVER_NAME>
+```
+### Get g52 gbm driver  
+https://github.com/tsukumijima/libmali-rockchip/releases
 
 ```bash
-ssh pi@NanoPi-R5C
+wget <LINK_TO_DRIVER>
+
+sudo apt install ./<DRIVER_FILENAME> && rm $_
 ```
-
-Some extensions need to be reinstalled on the remote host.
-
-## Download Node.js
-
-https://nodejs.org/en/download  
-Get Node.js® `vxx.x.x (Current)` for `Linux` using `nvm` with `pnpm`
-
-## Set Scale Fator
-
-```bash
-vim ~/.Xresources
-```
-
-### ~/.Xresources
-
-```diff
-Xft.dpi: 192
-
-```
-
-Takes effect after reboot.  
-Corresponds to 200% scaling for local development.
 
 ## Git Configuration
 
-### Git
-
 ```bash
 git config --list
-```
+# execute on the local system
 
-Execute on the local system to copy.
-
-```bash
 git config --global user.name "<USERNAME>"
+
 git config --global user.email <EMAIL>
 ```
